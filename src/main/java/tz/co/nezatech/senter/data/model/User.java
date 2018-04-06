@@ -12,12 +12,13 @@ public class User extends BaseData{
 		super();
 	}
 
-	public User(String username, String password, String email, String fullName) {
+	public User(Long id, String username, String password, String email, String fullName) {
 		super();
 		this.username = username;
 		this.password = password;
 		this.email = email;
 		this.fullName = fullName;
+		this.id=id;
 	}
 
 	public Role getRole() {

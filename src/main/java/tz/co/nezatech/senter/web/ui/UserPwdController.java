@@ -8,6 +8,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -38,6 +39,7 @@ public class UserPwdController {
 	@Autowired
 	BCryptPasswordEncoder passwordEncoder;
 	@Autowired
+	@Qualifier("emailServiceImpl")
 	EmailService emailService;
 
 	@GetMapping("/reset/{id}")

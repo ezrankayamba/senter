@@ -9,18 +9,16 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
-@Component("emailServiceImpl")
-public class EmailServiceImpl implements EmailService {
+@Component("emailServiceImplSync")
+public class EmailServiceImplSync implements EmailService {
 
 	@Autowired
 	public JavaMailSender emailSender;
-	private static final Logger logger = LoggerFactory.getLogger(EmailServiceImpl.class);
+	private static final Logger logger = LoggerFactory.getLogger(EmailServiceImplSync.class);
 
 	@Override
-	@Async("emailNotificationTaskExecutor")
 	public void sendMail(String from, String to, String subject, String msg) {
 		try {
 			MimeMessage message = emailSender.createMimeMessage();
@@ -44,4 +42,5 @@ public class EmailServiceImpl implements EmailService {
 		sb.append(contextPath).append(path);
 		return sb.toString();
 	}
+	
 }

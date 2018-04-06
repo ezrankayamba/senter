@@ -64,8 +64,9 @@ public class RoleRepository implements IDataRepository<Long, Role> {
 			return ps;
 		}, keyHolder);
 
-		Long id = keyHolder.getKey().longValue();
-		e.setId(id);
+		keyHolder.getKeyList().forEach(m -> {
+			e.setId((Long) m.get("id"));
+		});
 		return e;
 	}
 
@@ -77,8 +78,8 @@ public class RoleRepository implements IDataRepository<Long, Role> {
 	}
 
 	@Override
-	public void delete(Role e) {
-		jdbcTemplate.update(deleteSql() + " where u.id = ?", e.getId());
+	public void delete(Long id) {
+		jdbcTemplate.update(deleteSql() + " where u.id = ?", id);
 	}
 
 	@Override
@@ -114,7 +115,7 @@ public class RoleRepository implements IDataRepository<Long, Role> {
 	}
 
 	public void matrixInserts(final List<Long> inserts, final Role e) {
-		String sql = "INSERT INTO tbl_role_permission (permission_id, role_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE permission_id=permission_id ";
+		String sql = "INSERT INTO tbl_role_permission (permission_id, role_id) VALUES (?, ?) ON CONFLICT (permission_id, role_id) DO NOTHING ";
 		List<Object[]> args = new LinkedList<>();
 		inserts.forEach(id -> {
 			args.add(new Long[] { id, e.getId() });

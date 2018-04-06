@@ -6,6 +6,8 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
@@ -19,6 +21,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import tz.co.nezatech.senter.data.model.User;
 import tz.co.nezatech.senter.data.repository.RoleRepository;
 import tz.co.nezatech.senter.data.repository.UserRepository;
+import tz.co.nezatech.senter.event.OnRegistrationCompleteEvent;
 import tz.co.nezatech.senter.service.EmailService;
 
 @Controller
@@ -32,7 +35,10 @@ public class UserController {
 	@Autowired
 	BCryptPasswordEncoder passwordEncoder;
 	@Autowired
+	@Qualifier("emailServiceImpl")
 	EmailService emailService;
+	@Autowired
+	ApplicationEventPublisher eventPublisher;
 
 	@GetMapping()
 	@PreAuthorize("hasAnyAuthority('viewUsers')")
@@ -76,7 +82,7 @@ public class UserController {
 	@GetMapping("/delete/{id}")
 	@PreAuthorize("hasAnyAuthority('deleteUsers')")
 	public String delete(Model m, @PathVariable Long id) {
-		userRepository.delete(userRepository.query(id));
+		userRepository.delete(id);
 		return "redirect:/users";
 	}
 
@@ -86,21 +92,10 @@ public class UserController {
 		if (e.getId() != null && e.getId() > 0) {
 			userRepository.update(e);
 		} else {
-			// set password
 			String pwd = MyUtil.alphaNumericRandom(6);
 			e.setPassword(passwordEncoder.encode(pwd));
 			User u = userRepository.create(e);
-
-			String path = "/pwd/verify/" + MyUtil.encode(u.getId() + "-" + pwd);
-			String url = emailService.url(path, req);
-			String thml = "<div style=\"border: 1px solid #333;padding: 0.5rem;\">Welcome to Survey Tool. Your account is reset. Kindly click below link to access your account. <br/> <br/> "
-					+ "<a href=\"" + url
-					+ "\" style=\"display: block; font-size:120%; text-decoration:none; width: 248px;background: #4E9CAF;text-align: center;color: white;font-weight: bold;padding: 0.5rem\" >"
-					+ "Survey Tool Login</a>" + "</div>";
-			String to = e.getEmail();
-			String from = "Survey Tool <nezatech18@gmail.com>";
-			String subject = "Complete registration";
-			emailService.sendMail(from, to, subject, thml);
+			eventPublisher.publishEvent(new OnRegistrationCompleteEvent(u, req));
 		}
 		FlashData fd = new FlashData(200, "Successfully edited user");
 		if (fd.getResultCode() == 200) {

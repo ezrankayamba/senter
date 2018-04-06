@@ -14,14 +14,16 @@
 -- Table structure for table tbl_permission
 --
 
+--DROP DATABASE IF EXISTS senderdb;
+
 --DROP TABLE IF EXISTS tbl_permission;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE IF NOT EXISTS tbl_permission (
-  id integer PRIMARY KEY NOT NULL,
+  id BIGSERIAL PRIMARY KEY NOT NULL,
   name varchar(50) DEFAULT NULL,
   description varchar(100) DEFAULT NULL,
-  parent integer DEFAULT NULL REFERENCES tbl_permission (id)
+  parent bigint DEFAULT NULL REFERENCES tbl_permission (id)
 );
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -33,7 +35,7 @@ CREATE TABLE IF NOT EXISTS tbl_permission (
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE IF NOT EXISTS tbl_role (
-  id integer PRIMARY KEY NOT NULL,
+  id BIGSERIAL PRIMARY KEY NOT NULL,
   name varchar(50) DEFAULT NULL,
   description varchar(100) DEFAULT NULL
 );
@@ -47,10 +49,11 @@ CREATE TABLE IF NOT EXISTS tbl_role (
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE IF NOT EXISTS tbl_role_permission (
-  id integer PRIMARY KEY NOT NULL,
-  permission_id integer NOT NULL REFERENCES tbl_permission (id),
-  role_id integer NOT NULL REFERENCES tbl_role (id),
-  status smallint DEFAULT '0'
+  id BIGSERIAL PRIMARY KEY NOT NULL,
+  permission_id bigint NOT NULL REFERENCES tbl_permission (id),
+  role_id bigint NOT NULL REFERENCES tbl_role (id),
+  status bool DEFAULT false,
+  UNIQUE (permission_id, role_id)
 );
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -62,14 +65,14 @@ CREATE TABLE IF NOT EXISTS tbl_role_permission (
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE IF NOT EXISTS tbl_user (
-  id integer NOT NULL PRIMARY KEY,
+  id BIGSERIAL NOT NULL PRIMARY KEY,
   username varchar(50) DEFAULT NULL UNIQUE,
   password varchar(100) DEFAULT NULL,
   email varchar(100) DEFAULT NULL,
   full_name varchar(100) DEFAULT NULL,
-  role_id integer NOT NULL REFERENCES tbl_role (id),
-  enabled smallint DEFAULT '0',
-  reset_on smallint DEFAULT '0'
+  role_id bigint NOT NULL REFERENCES tbl_role (id),
+  enabled bool DEFAULT false,
+  reset_on bool DEFAULT false
 );
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -85,13 +88,13 @@ CREATE TABLE IF NOT EXISTS tbl_user (
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE IF NOT EXISTS tbl_audit (
-  id bigint PRIMARY KEY NOT NULL,
+  id BIGSERIAL PRIMARY KEY NOT NULL,
   task varchar(45) DEFAULT NULL,
-  user_id integer NOT NULL REFERENCES tbl_user (id),
-  role_id integer NOT NULL REFERENCES tbl_role (id),
+  user_id bigint NOT NULL REFERENCES tbl_user (id),
+  role_id bigint NOT NULL REFERENCES tbl_role (id),
   record_date timestamp NOT NULL,
   last_update timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  status smallint DEFAULT NULL,
+  status bool DEFAULT NULL,
   http_code varchar(10) DEFAULT NULL
 );
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -104,11 +107,11 @@ CREATE TABLE IF NOT EXISTS tbl_audit (
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE IF NOT EXISTS tbl_data_type (
-  position smallint NOT NULL DEFAULT '0',
+  position integer NOT NULL DEFAULT '0',
   name varchar(100) PRIMARY KEY NOT NULL,
   type varchar(50) DEFAULT NULL,
   last_update timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  status smallint DEFAULT '0'
+  status bool DEFAULT false
 );
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -120,7 +123,7 @@ CREATE TABLE IF NOT EXISTS tbl_data_type (
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE IF NOT EXISTS tbl_form (
-  id integer PRIMARY KEY NOT NULL,
+  id BIGSERIAL PRIMARY KEY NOT NULL,
   name varchar(100) DEFAULT NULL,
   description varchar(255) DEFAULT NULL,
   filepath varchar(255) DEFAULT NULL,
@@ -140,15 +143,26 @@ CREATE TABLE IF NOT EXISTS tbl_form (
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE IF NOT EXISTS tbl_form_instance (
-  id integer PRIMARY KEY NOT NULL,
+  id BIGSERIAL PRIMARY KEY NOT NULL,
   uuid varchar(100) DEFAULT NULL UNIQUE,
   name varchar(100) DEFAULT NULL,
   record_date timestamp DEFAULT NULL,
-  status smallint DEFAULT NULL,
+  status integer DEFAULT NULL,
   last_update timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   json text,
-  form_id integer NOT NULL REFERENCES tbl_form (id),
+  form_id bigint NOT NULL REFERENCES tbl_form (id),
   recorded_by integer NOT NULL REFERENCES tbl_user (id)
+);
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--DROP TABLE IF EXISTS tbl_verification_token;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE IF NOT EXISTS tbl_verification_token (
+  id BIGSERIAL PRIMARY KEY NOT NULL,
+  user_id bigint NOT NULL,
+  token varchar(255) DEFAULT NULL UNIQUE,
+  record_date timestamp DEFAULT NULL
 );
 /*!40101 SET character_set_client = @saved_cs_client */;
 

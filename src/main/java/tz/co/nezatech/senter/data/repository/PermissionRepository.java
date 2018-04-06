@@ -73,8 +73,9 @@ public class PermissionRepository implements IDataRepository<Long, Permission> {
 			return ps;
 		}, keyHolder);
 
-		Long id = keyHolder.getKey().longValue();
-		e.setId(id);
+		keyHolder.getKeyList().forEach(m -> {
+			e.setId((Long) m.get("id"));
+		});
 		return e;
 	}
 
@@ -87,8 +88,8 @@ public class PermissionRepository implements IDataRepository<Long, Permission> {
 	}
 
 	@Override
-	public void delete(Permission e) {
-		jdbcTemplate.update(deleteSql() + " where p.id = ?", e.getId());
+	public void delete(Long id) {
+		jdbcTemplate.update(deleteSql() + " where p.id = ?", id);
 	}
 
 	@Override

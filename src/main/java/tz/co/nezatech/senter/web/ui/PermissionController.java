@@ -67,7 +67,7 @@ public class PermissionController {
 	@GetMapping("/delete/{id}")
 	@PreAuthorize("hasAnyAuthority('deletePermission')")
 	public String delete(Model m, @PathVariable Long id, final RedirectAttributes redirectAttributes) {
-		permissionRepository.delete(permissionRepository.query(id));
+		permissionRepository.delete(id);
 		FlashData fd = new FlashData(200, "Successfully deleted the permission");
 		if (fd.getResultCode() == 200) {
 			fd.setStyleClass("success");

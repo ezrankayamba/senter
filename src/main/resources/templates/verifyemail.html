@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:th="http://www.thymeleaf.org">
+<head>
+<style type="text/css">
+body{
+	background: #F6F6F6F6;
+}
+label {
+	vertical-align: top;
+}
+
+#submit {
+	border: 1px solid #F6F6F6;
+	background: #339933;
+	color: #F6F6F6;
+	width: 150rem;
+	min-width: 150rem;
+	display: inline;
+	border: 1px solid #F6F6F6;
+}
+</style>
+</head>
+<body>
+	<header>
+		<h3>Email verification</h3>
+	</header>
+	<section>
+		<div>
+			<p>
+				Dear <i th:text="${user.username}">Username</i> congraturation!
+			</p>
+			<p>
+				You have successfully registered with <span th:text="${appName}">Service
+					center</span>. Kindly click below link to activate your login credentials.
+			</p>
+		</div>
+		<form th:action="${verifyUrl}">
+			<input type="hidden" name="token" th:value="${token}"/>
+			<div>
+				<div>Agree to terms and conditions</div>
+				<div>
+					<input class="radio" type="radio" name="tnc" value="0" /><label>Yes</label>
+				</div>
+				<div>
+					<input class="radio" type="radio" name="tnc" value="1" /><label>No</label>
+				</div>
+			</div>
+			<div>
+				<button id="submit" type="submit">Verify</button>
+			</div>
+		</form>
+	</section>
+</body>
+</html>

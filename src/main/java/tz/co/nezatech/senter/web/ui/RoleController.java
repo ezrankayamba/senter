@@ -62,7 +62,7 @@ public class RoleController {
 	@GetMapping("/delete/{id}")
 	@PreAuthorize("hasAnyAuthority('editRoles')")
 	public String delete(Model m, @PathVariable Long id) {
-		roleRepository.delete(roleRepository.query(id));
+		roleRepository.delete(id);
 		return "redirect:/roles";
 	}
 

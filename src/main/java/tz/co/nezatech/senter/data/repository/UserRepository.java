@@ -30,7 +30,7 @@ public class UserRepository implements IDataRepository<Long, User> {
 
 	public RowMapper<User> getRowMapper() {
 		return (rs, rowNum) -> {
-			User e = new User(rs.getString("username"), rs.getString("password"), rs.getString("email"),
+			User e = new User(rs.getLong("id"), rs.getString("username"), rs.getString("password"), rs.getString("email"),
 					rs.getString("full_name"));
 			Role r = new Role(rs.getString("role_name"), rs.getString("role_description"));
 			r.setId(rs.getLong("role_id"));
@@ -84,8 +84,9 @@ public class UserRepository implements IDataRepository<Long, User> {
 			return ps;
 		}, keyHolder);
 
-		Long id = keyHolder.getKey().longValue();
-		e.setId(id);
+		keyHolder.getKeyList().forEach(m -> {
+			e.setId((Long) m.get("id"));
+		});
 		return e;
 	}
 
@@ -98,8 +99,8 @@ public class UserRepository implements IDataRepository<Long, User> {
 	}
 
 	@Override
-	public void delete(User e) {
-		jdbcTemplate.update(deleteSql() + " where u.id = ?", e.getId());
+	public void delete(Long id) {
+		jdbcTemplate.update(deleteSql() + " where u.id = ?", id);
 	}
 
 	@Override
