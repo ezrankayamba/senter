@@ -8,10 +8,10 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 	@Autowired
-	ViewLayoutBasedHandler hbsHandler;
+	ViewLayoutBasedHandler layoutBasedHandler;
 
 	@Override
 	public void addInterceptors(InterceptorRegistry registry) {
-		registry.addInterceptor(hbsHandler);
+		registry.addInterceptor(layoutBasedHandler);
 	}
 }

@@ -1,9 +1,6 @@
 package tz.co.nezatech.senter.data.repository;
 
-import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.LinkedList;
 import java.util.List;
@@ -11,7 +8,6 @@ import java.util.Locale;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -27,22 +23,18 @@ public class PermissionRepository implements IDataRepository<Long, Permission> {
 	JdbcTemplate jdbcTemplate;
 
 	public RowMapper<Permission> getRowMapper() {
-		return new RowMapper<Permission>() {
+		return (rs, rowNum) -> {
+			Permission e = new Permission(rs.getString("name"), rs.getString("description"));
+			e.setId(rs.getLong("id"));
+			Long parentId = rs.getLong("parent");
+			if (parentId != null && parentId > 0) {
+				Permission parent = new Permission(rs.getString("parent_name"), rs.getString("parent_description"));
+				parent.setId(rs.getLong("parent"));
 
-			@Override
-			public Permission mapRow(ResultSet rs, int rowNum) throws SQLException {
-				Permission e = new Permission(rs.getString("name"), rs.getString("description"));
-				e.setId(rs.getLong("id"));
-				Long parentId = rs.getLong("parent");
-				if (parentId != null && parentId > 0) {
-					Permission parent = new Permission(rs.getString("parent_name"), rs.getString("parent_description"));
-					parent.setId(rs.getLong("parent"));
-
-					e.setParent(parent);
-				}
-				e.setEnabled(rs.getBoolean("enabled"));
-				return e;
+				e.setParent(parent);
 			}
+			e.setEnabled(rs.getBoolean("enabled"));
+			return e;
 		};
 	}
 
@@ -55,6 +47,7 @@ public class PermissionRepository implements IDataRepository<Long, Permission> {
 	public Permission query(Long id) {
 		return jdbcTemplate.queryForObject(querySql() + " and p.id = ?", new Long[] { id }, getRowMapper());
 	}
+
 	@Override
 	public List<Permission> query(List<NamedQueryParam> filters) {
 		StringBuilder sb = new StringBuilder();
@@ -65,21 +58,19 @@ public class PermissionRepository implements IDataRepository<Long, Permission> {
 		});
 		return jdbcTemplate.query(querySql() + sb.toString(), args.toArray(), getRowMapper());
 	}
+
 	@Override
 	public Permission create(final Permission e) {
 		KeyHolder keyHolder = new GeneratedKeyHolder();
-		jdbcTemplate.update(new PreparedStatementCreator() {
-
-			@Override
-			public PreparedStatement createPreparedStatement(Connection con) throws SQLException {
-				Long parentId = e.getParent() == null ? null : e.getParent().getId();
-				PreparedStatement ps = con.prepareStatement("insert into tbl_permission(name, description, parent) values (?, ?, ?)",
-						Statement.RETURN_GENERATED_KEYS);
-				ps.setString(1, e.getName());
-				ps.setString(2, e.getDescription());
-				ps.setObject(3, parentId);
-				return ps;
-			}
+		jdbcTemplate.update((con) -> {
+			Long parentId = e.getParent() == null ? null : e.getParent().getId();
+			PreparedStatement ps = con.prepareStatement(
+					"insert into tbl_permission(name, description, parent) values (?, ?, ?)",
+					Statement.RETURN_GENERATED_KEYS);
+			ps.setString(1, e.getName());
+			ps.setString(2, e.getDescription());
+			ps.setObject(3, parentId);
+			return ps;
 		}, keyHolder);
 
 		Long id = keyHolder.getKey().longValue();

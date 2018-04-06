@@ -1,9 +1,6 @@
 package tz.co.nezatech.senter.data.repository;
 
-import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -13,7 +10,6 @@ import java.util.Locale;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -29,14 +25,10 @@ public class RoleRepository implements IDataRepository<Long, Role> {
 	JdbcTemplate jdbcTemplate;
 
 	public RowMapper<Role> getRowMapper() {
-		return new RowMapper<Role>() {
-
-			@Override
-			public Role mapRow(ResultSet rs, int rowNum) throws SQLException {
-				Role e = new Role(rs.getString("name"), rs.getString("description"));
-				e.setId(rs.getLong("id"));
-				return e;
-			}
+		return (rs, rowNum) -> {
+			Role e = new Role(rs.getString("name"), rs.getString("description"));
+			e.setId(rs.getLong("id"));
+			return e;
 		};
 	}
 
@@ -49,6 +41,7 @@ public class RoleRepository implements IDataRepository<Long, Role> {
 	public Role query(Long id) {
 		return jdbcTemplate.queryForObject(querySql() + " and r.id = ?", new Long[] { id }, getRowMapper());
 	}
+
 	@Override
 	public List<Role> query(List<NamedQueryParam> filters) {
 		StringBuilder sb = new StringBuilder();
@@ -59,19 +52,16 @@ public class RoleRepository implements IDataRepository<Long, Role> {
 		});
 		return jdbcTemplate.query(querySql() + sb.toString(), args.toArray(), getRowMapper());
 	}
+
 	@Override
 	public Role create(final Role e) {
 		KeyHolder keyHolder = new GeneratedKeyHolder();
-		jdbcTemplate.update(new PreparedStatementCreator() {
-
-			@Override
-			public PreparedStatement createPreparedStatement(Connection con) throws SQLException {
-				PreparedStatement ps = con.prepareStatement("insert into tbl_role(name, description) values (?, ?)",
-						Statement.RETURN_GENERATED_KEYS);
-				ps.setString(1, e.getName());
-				ps.setString(2, e.getDescription());
-				return ps;
-			}
+		jdbcTemplate.update((con) -> {
+			PreparedStatement ps = con.prepareStatement("insert into tbl_role(name, description) values (?, ?)",
+					Statement.RETURN_GENERATED_KEYS);
+			ps.setString(1, e.getName());
+			ps.setString(2, e.getDescription());
+			return ps;
 		}, keyHolder);
 
 		Long id = keyHolder.getKey().longValue();
@@ -132,7 +122,7 @@ public class RoleRepository implements IDataRepository<Long, Role> {
 		jdbcTemplate.batchUpdate(sql, args);
 	}
 
-	public void matrixDeletes(final List<Long> deletes, final Role e) {		
+	public void matrixDeletes(final List<Long> deletes, final Role e) {
 		String sql = "DELETE FROM tbl_role_permission where permission_id=? and role_id=? ";
 		List<Object[]> args = new LinkedList<>();
 		deletes.forEach(id -> {

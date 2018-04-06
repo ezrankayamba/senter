@@ -1,9 +1,6 @@
 package tz.co.nezatech.senter.data.repository;
 
-import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.LinkedList;
 import java.util.List;
@@ -13,7 +10,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -33,23 +29,20 @@ public class UserRepository implements IDataRepository<Long, User> {
 	PermissionRepository permissionRepository;
 
 	public RowMapper<User> getRowMapper() {
-		return new RowMapper<User>() {
+		return (rs, rowNum) -> {
+			User e = new User(rs.getString("username"), rs.getString("password"), rs.getString("email"),
+					rs.getString("full_name"));
+			Role r = new Role(rs.getString("role_name"), rs.getString("role_description"));
+			r.setId(rs.getLong("role_id"));
+			r.setPermissions(permissionRepository.matrix(r.getId()));
+			e.setRole(r);
+			e.setId(rs.getLong("id"));
+			e.setResetOn(rs.getBoolean("reset_on"));
+			e.setEnabled(rs.getBoolean("enabled"));
 
-			@Override
-			public User mapRow(ResultSet rs, int rowNum) throws SQLException {
-				User e = new User(rs.getString("username"), rs.getString("password"), rs.getString("email"),
-						rs.getString("full_name"));
-				Role r = new Role(rs.getString("role_name"), rs.getString("role_description"));
-				r.setId(rs.getLong("role_id"));
-				r.setPermissions(permissionRepository.matrix(r.getId()));
-				e.setRole(r);
-				e.setId(rs.getLong("id"));
-				e.setResetOn(rs.getBoolean("reset_on"));
-				e.setEnabled(rs.getBoolean("enabled"));
-
-				return e;
-			}
+			return e;
 		};
+
 	}
 
 	@Override
@@ -78,21 +71,17 @@ public class UserRepository implements IDataRepository<Long, User> {
 	@Override
 	public User create(final User e) {
 		KeyHolder keyHolder = new GeneratedKeyHolder();
-		jdbcTemplate.update(new PreparedStatementCreator() {
-
-			@Override
-			public PreparedStatement createPreparedStatement(Connection con) throws SQLException {
-				PreparedStatement ps = con.prepareStatement(
-						"insert into tbl_user(username, password, email, enabled, role_id, full_name) values (?, ?, ?, ?, ?, ?)",
-						Statement.RETURN_GENERATED_KEYS);
-				ps.setString(1, e.getUsername());
-				ps.setString(2, e.getPassword());
-				ps.setString(3, e.getEmail());
-				ps.setBoolean(4, true);
-				ps.setObject(5, e.getRole() != null ? e.getRole().getId() : null);
-				ps.setString(6, e.getFullName());
-				return ps;
-			}
+		jdbcTemplate.update((con) -> {
+			PreparedStatement ps = con.prepareStatement(
+					"insert into tbl_user(username, password, email, enabled, role_id, full_name) values (?, ?, ?, ?, ?, ?)",
+					Statement.RETURN_GENERATED_KEYS);
+			ps.setString(1, e.getUsername());
+			ps.setString(2, e.getPassword());
+			ps.setString(3, e.getEmail());
+			ps.setBoolean(4, true);
+			ps.setObject(5, e.getRole() != null ? e.getRole().getId() : null);
+			ps.setString(6, e.getFullName());
+			return ps;
 		}, keyHolder);
 
 		Long id = keyHolder.getKey().longValue();
