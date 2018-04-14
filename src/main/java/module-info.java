@@ -11,7 +11,7 @@ module tz.co.nezatech.senter {
 	requires spring.boot;
 	requires spring.jdbc;
 	requires spring.boot.autoconfigure;
-	requires javax.servlet.api;
+	requires tomcat.embed.core;
 	requires tz.co.nezatech.nezadb;
 	requires spring.security.core;
 	requires spring.security.web;
@@ -21,4 +21,19 @@ module tz.co.nezatech.senter {
 	requires slf4j.api;
 	requires spring.context.support;
 	requires reflections;	
+	exports tz.co.nezatech.senter;
+	exports tz.co.nezatech.senter.web.config;
+	exports tz.co.nezatech.senter.data.repository;
+	exports tz.co.nezatech.senter.web.ui;
+	exports tz.co.nezatech.senter.service to spring.beans;
+	exports tz.co.nezatech.senter.event.listener to spring.beans;
+	exports tz.co.nezatech.senter.handler to spring.beans;
+	exports tz.co.nezatech.senter.data.model;
+	opens tz.co.nezatech.senter to spring.core;
+	opens tz.co.nezatech.senter.web.config to spring.core;
+	opens tz.co.nezatech.senter.data.repository to spring.core;
+	opens tz.co.nezatech.senter.web.ui to spring.core;
+	opens tz.co.nezatech.senter.event.listener to spring.core;
+	opens tz.co.nezatech.senter.handler to spring.core;
+
 }
